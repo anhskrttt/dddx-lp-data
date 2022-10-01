@@ -7,12 +7,11 @@ import (
 	"math"
 	"math/big"
 	"net/http"
-	"strconv"
 )
 
-func WeiToEth(balance int) float64 {
+func WeiToEth(balance *big.Int) float64 {
 	fbalance := new(big.Float)
-	fbalance.SetString(strconv.Itoa(balance))
+	fbalance.SetString(balance.String())
 	bnbValue := new(big.Float).Quo(fbalance, big.NewFloat(math.Pow10(18)))
 
 	// WARNING: Should check accuracy?
