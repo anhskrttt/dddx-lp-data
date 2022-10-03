@@ -2,7 +2,6 @@ package utils
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"math"
@@ -56,8 +55,6 @@ func GetUsdPriceInPair(token0 string, token1 string) (float64, float64) {
 	// Lower case all parameter strings
 	token0_id := TokenSymbolToId[strings.ToLower(token0)]
 	token1_id := TokenSymbolToId[strings.ToLower(token1)]
-
-	fmt.Println(token0_id, token1_id)
 
 	resp, err := http.Get("https://api.coingecko.com/api/v3/simple/price?ids=" + token0_id + "," + token1_id + "&vs_currencies=usd")
 	if err != nil {

@@ -2,11 +2,6 @@ package models
 
 import "math/big"
 
-type LPInfo struct {
-	UserAddress string           `json:"user_address"`
-	LPBalance   TokenPairBalance `json:"lp_balance"`
-}
-
 // LP & Farming response
 type LPFarmResponse struct {
 	UserAddress string       `json:"user_address"`
