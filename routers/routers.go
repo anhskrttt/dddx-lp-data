@@ -7,14 +7,23 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// Routers includes all api routes.
 func Routers() http.Handler {
 	r := gin.Default()
 
-	// My API
-	r.GET("/ping", controllers.Ping)
-	r.GET("/api/lp/:usrAddr", controllers.GetUserInfo)
-	r.GET("/api/farm/:usrAddr", controllers.GetUserInfoFarming)
-	r.GET("/api/lock/:usrAddr", controllers.GetUserInfoLocked)
+	// Write the log to gin.DefaultWriter
+	r.Use(gin.Logger())
+
+	// Recovery middleware
+	// Recovers from any panics any writes a 500 if there was one
+	r.Use(gin.Recovery())
+
+	r.GET("/ping", controllers.Ping) // Test
+
+	// Core APIs
+	r.GET("/api/v1/user/lps", controllers.GetLpOfProtocol)        // Get user's specific LP pair data from specific chain
+	r.GET("/api/v1/user/farms", controllers.GetFarmOfProtocol)    // Get user's specific Farming pair data from specific chain
+	r.GET("/api/v1/user/staked", controllers.GetStakedOfProtocol) // Get user's specific Farming pair data from specific chain
 
 	return r
 }
