@@ -1,11 +1,13 @@
 package utils
 
 import (
+	"dddx-lp-data/abigen/gauge"
 	"dddx-lp-data/abigen/pair"
 	"dddx-lp-data/abigen/token"
 	"dddx-lp-data/initializers"
 	"dddx-lp-data/models"
 	"fmt"
+	"log"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -37,6 +39,15 @@ func GetTokenInstance(address string) *token.Token {
 	}
 
 	return token
+}
+
+func GetGaugeInstance(address string) *gauge.Gauge {
+	gauge, err := gauge.NewGauge(common.HexToAddress(address), initializers.Client)
+	if err != nil {
+		panic(err)
+	}
+
+	return gauge
 }
 
 func GetTokenPairInstances(poolInstance *pair.Pair) (*token.Token, *token.Token) {
@@ -138,6 +149,115 @@ func GetTokenPairBalOfUser(userAddress string, poolAddress string) (models.Token
 
 	return token0Bal, token1Bal
 
+}
+
+func GetFarmTokenPairBalOfUser(userAddress string, gaugeAddress string) (models.TokenBalance, models.TokenBalance) {
+	// Declare instances: gauge, pool
+	gaugeInstance := GetGaugeInstance(gaugeAddress)
+
+	// Get pair contract address from gauge contract
+	poolAddress, err := gaugeInstance.Stake(&bind.CallOpts{})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	poolInstance := GetPoolInstance(poolAddress.Hex())
+
+	// Get wallet's farm token balance
+	bal, err := gaugeInstance.BalanceOf(&bind.CallOpts{}, common.HexToAddress(userAddress))
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(bal)
+
+	// After getting wallet's LP token balance, calculate each token in pair as normal liquidity provide
+	// Get total supply of LP tokens
+	totalSupply, err := poolInstance.TotalSupply(&bind.CallOpts{})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	lpRatio := DivBigIntToBigFloat(bal, totalSupply)
+
+	// Get symbols
+	token0Instance, token1Instance := GetTokenPairInstances(poolInstance)
+	symbol0, err := token0Instance.Symbol(&bind.CallOpts{})
+	if err != nil {
+		panic(err)
+	}
+
+	symbol1, err := token1Instance.Symbol(&bind.CallOpts{})
+	if err != nil {
+		panic(err)
+	}
+
+	// Balance of pool
+	token0BalOfPool, err := token0Instance.BalanceOf(&bind.CallOpts{}, poolAddress)
+	if err != nil {
+		panic(err)
+	}
+
+	token1BalOfPool, err := token1Instance.BalanceOf(&bind.CallOpts{}, poolAddress)
+	if err != nil {
+		panic(err)
+	}
+
+	token0BalOfUser := GetRatioOfBal(lpRatio, token0BalOfPool) // = ratio * total amount
+	token1BalOfUser := GetRatioOfBal(lpRatio, token1BalOfPool) // = ratio * total amount
+
+	// Balance in USD
+	/**********************************************************************/
+	/* Query data from coingecko */
+
+	// WBNB to USD
+	fmt.Println(symbol0, symbol1)
+	price0, price1 := GetUsdPriceInPair(symbol0, symbol1)
+	Token0BalInUsd := WeiToEth(token0BalOfUser) * price0
+
+	// BUSD to USD
+	Token1BalInUsd := WeiToEth(token1BalOfUser) * price1
+
+	/* End of querying data from coingecko*/
+	/**********************************************************************/
+
+	token0Bal := models.TokenBalance{
+		TokenSymbol:  symbol0,
+		Balance:      token0BalOfUser,
+		BalanceInUSD: Token0BalInUsd,
+	}
+
+	token1Bal := models.TokenBalance{
+		TokenSymbol:  symbol1,
+		Balance:      token1BalOfUser,
+		BalanceInUSD: Token1BalInUsd,
+	}
+
+	return token0Bal, token1Bal
+
+}
+
+func GetPoolAddressFromGauge(gaugeAddress string) string {
+	gaugeInstance := GetGaugeInstance(gaugeAddress)
+
+	// Get pair contract address from gauge contract
+	poolAddress, err := gaugeInstance.Stake(&bind.CallOpts{})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return poolAddress.Hex()
+}
+
+func GetPoolFromGauge(gaugeAddress string) models.PoolSimple {
+	gaugeInstance := GetGaugeInstance(gaugeAddress)
+
+	// Get pair contract address from gauge contract
+	poolAddress, err := gaugeInstance.Stake(&bind.CallOpts{})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return GetPoolFromAddress(poolAddress.Hex())
 }
 
 // Get ratio amount of total

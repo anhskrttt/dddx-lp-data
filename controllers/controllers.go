@@ -56,7 +56,7 @@ func GetLpOfProtocol(c *gin.Context) {
 	token0BalOfUser, token1BalOfUser := utils.GetTokenPairBalOfUser(data.UserAddress, data.PoolAddress)
 
 	// Create response & Attach data to response struct
-	response := models.GetLpOfProtocolResponse{
+	response := models.LPFarmResponse{
 		UserAddress: data.UserAddress,
 		Token0:      token0BalOfUser,
 		Token1:      token1BalOfUser,
@@ -67,6 +67,35 @@ func GetLpOfProtocol(c *gin.Context) {
 	// Respond with defined data
 	c.JSON(http.StatusOK, gin.H{
 		"lp_response": response,
+	})
+
+}
+
+// Get LP data from one pool
+func GetFarmOfProtocol(c *gin.Context) {
+	// Declare request model to use
+	var data models.GetFarmOfProtocolRequest
+
+	// Get data off header: user_address, protocol_id, pool_address
+	if err := c.ShouldBind(&data); err != nil {
+		c.JSON(http.StatusBadRequest, err.Error())
+	}
+
+	// Read data from pool address and calculate LP balance
+	token0BalOfUser, token1BalOfUser := utils.GetFarmTokenPairBalOfUser(data.UserAddress, data.GaugeAddress)
+
+	// Create response & Attach data to response struct
+	response := models.LPFarmResponse{
+		UserAddress: data.UserAddress,
+		Token0:      token0BalOfUser,
+		Token1:      token1BalOfUser,
+		ProtocolId:  data.ProtocolId,
+		Pool:        utils.GetPoolFromGauge(data.GaugeAddress), // Generate a simple pool model for general pool info
+	}
+
+	// Respond with defined data
+	c.JSON(http.StatusOK, gin.H{
+		"farm_response": response,
 	})
 
 }
@@ -406,53 +435,6 @@ func GetUserInfoLocked(c *gin.Context) {
 
 		result = append(result, test)
 	}
-
-	// query := ethereum.FilterQuery{
-	// 	Addresses: []common.Address{
-	// 		veAddress,
-	// 	},
-	// }
-
-	// logs, err := initializers.Client.FilterLogs(context.Background(), query)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-
-	// contractAbi, err := abi.JSON(strings.NewReader(string(ve.VeABI)))
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-
-	// logDepositSig := []byte("Deposit(address,uint256,uint256,uint256,uint8,uint256)")
-	// logDepositSigHash := crypto.Keccak256Hash(logDepositSig)
-
-	// for _, vLog := range logs {
-	// 	fmt.Printf("Log Block Number: %d\n", vLog.BlockNumber)
-	// 	fmt.Printf("Log Index: %d\n", vLog.Index)
-
-	// 	switch vLog.Topics[0].Hex() {
-	// 	case logDepositSigHash.Hex():
-	// 		fmt.Printf("Log Name: Transfer\n")
-
-	// 		var transferEvent LogTransfer
-	// 		fmt.Println(transferEvent)
-
-	// 		err := contractAbi.UnpackIntoInterface(&transferEvent, "Transfer", vLog.Data)
-	// 		if err != nil {
-	// 			log.Fatal(err)
-	// 		}
-
-	// 		transferEvent.From = common.HexToAddress(vLog.Topics[1].Hex())
-	// 		transferEvent.To = common.HexToAddress(vLog.Topics[2].Hex())
-
-	// 		fmt.Printf("From: %s\n", transferEvent.From.Hex())
-	// 		fmt.Printf("To: %s\n", transferEvent.To.Hex())
-	// 		fmt.Printf("Tokens: %s\n", transferEvent.Tokens.String())
-
-	// 	}
-
-	// 	fmt.Printf("\n\n")
-	// }
 
 	c.JSON(http.StatusOK, gin.H{
 		"message":  "successful",

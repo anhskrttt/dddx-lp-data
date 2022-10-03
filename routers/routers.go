@@ -38,6 +38,17 @@ func Routers() http.Handler {
 	/* End of LP Data APIs*/
 	/**********************************************************************/
 
+	/**********************************************************************/
+	/* Farming Data APIs*/
+
+	// r.GET("/api/v1/user/farms/all", controllers.GetAllLp) // Get Farming data (multiple protocols from multiple chains)
+	// r.GET("/api/v1/user/farms/:chain", controllers.GetAllLpOfChain) // Get Farming data (multiple protocols from one chain)
+	// r.GET("/api/v1/user/farms/:protocol", controllers.GetAllLPOfProtocol) // Get Farming data (multiple protocols from one chain)
+	r.GET("/api/v1/user/farms", controllers.GetFarmOfProtocol) // Get user's specific Farming pair data from specific chain
+
+	/* End of LP Data APIs*/
+	/**********************************************************************/
+
 	// Get user's Farming information
 	// r.GET("/api/v1/user/farm", controllers.GetFarmInfo)
 
