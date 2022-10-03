@@ -24,6 +24,80 @@ func Ping(c *gin.Context) {
 	})
 }
 
+/**********************************************************************/
+/* New APIs*/
+
+// Get LP data (multiple protocols from multiple chains)
+func GetAllLP(c *gin.Context) {
+
+}
+
+// Get LP data (multiple protocols from one chain)
+func GetAllLPsOfChain(c *gin.Context) {
+
+}
+
+// Get LP data (multiple protocols from one chain)
+func GetAllLPsOfProtocol(c *gin.Context) {
+
+}
+
+// Get LP data from one pool
+func GetLpOfProtocol(c *gin.Context) {
+	// Declare request model to use
+	var data models.GetLpOfProtocolRequest
+
+	// Get data off header: user_address, protocol_id, pool_address
+	if err := c.ShouldBind(&data); err != nil {
+		c.JSON(http.StatusBadRequest, err.Error())
+	}
+
+	// Read data from pool address and calculate LP balance
+	token0BalOfUser, token1BalOfUser := utils.GetTokenPairBalOfUser(data.UserAddress, data.PoolAddress)
+
+	// Create response & Attach data to response struct
+	response := models.GetLpOfProtocolResponse{
+		UserAddress: data.UserAddress,
+		Token0:      token0BalOfUser,
+		Token1:      token1BalOfUser,
+		ProtocolId:  data.ProtocolId,
+		Pool:        utils.GetPoolFromAddress(data.PoolAddress), // Generate a simple pool model for general pool info
+	}
+
+	// Respond with defined data
+	c.JSON(http.StatusOK, gin.H{
+		"lp_response": response,
+	})
+
+}
+
+func getParamFromURLQuery(c *gin.Context, param_name string) string {
+	query := c.Request.URL.Query()
+	return query.Get("user_address")
+}
+
+// Utils
+func GetAllChainIds(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{
+		"pair_ids": models.PairIds,
+	})
+}
+
+func GetAllProtocolIds(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{
+		"pair_ids": models.PairIds,
+	})
+}
+
+func GetAllPairIds(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{
+		"pair_ids": models.PairIds,
+	})
+}
+
+/* End of new APIs*/
+/**********************************************************************/
+
 // TestAddress: 0x043220ac21c0ce367689d93822ad70fe95ea8d2e
 func GetUserInfo(c *gin.Context) {
 	// Declare a model to response

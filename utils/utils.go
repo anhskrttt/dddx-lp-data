@@ -2,12 +2,21 @@ package utils
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"math"
 	"math/big"
 	"net/http"
+	"strings"
 )
+
+var TokenSymbolToId map[string]string = map[string]string{
+	"wbnb": "wbnb",
+	"busd": "busd",
+	"eth":  "ethereum",
+	"btc":  "bitcoin",
+}
 
 func WeiToEth(balance *big.Int) float64 {
 	fbalance := new(big.Float)
@@ -44,9 +53,15 @@ func GetUsdPrice(token string) float64 {
 }
 
 func GetUsdPriceInPair(token0 string, token1 string) (float64, float64) {
-	resp, err := http.Get("https://api.coingecko.com/api/v3/simple/price?ids=" + token0 + "," + token1 + "&vs_currencies=usd")
+	// Lower case all parameter strings
+	token0_id := TokenSymbolToId[strings.ToLower(token0)]
+	token1_id := TokenSymbolToId[strings.ToLower(token1)]
+
+	fmt.Println(token0_id, token1_id)
+
+	resp, err := http.Get("https://api.coingecko.com/api/v3/simple/price?ids=" + token0_id + "," + token1_id + "&vs_currencies=usd")
 	if err != nil {
-		log.Fatalln(err)
+		panic(err)
 	}
 	// Client must close response body when finished with it
 	defer resp.Body.Close()
@@ -62,7 +77,7 @@ func GetUsdPriceInPair(token0 string, token1 string) (float64, float64) {
 		panic(err)
 	}
 
-	price0 := data[token0].(map[string]interface{})["usd"]
-	price1 := data[token1].(map[string]interface{})["usd"]
+	price0 := data[token0_id].(map[string]interface{})["usd"]
+	price1 := data[token1_id].(map[string]interface{})["usd"]
 	return price0.(float64), price1.(float64)
 }
