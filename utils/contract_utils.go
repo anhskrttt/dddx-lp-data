@@ -4,6 +4,7 @@ import (
 	"dddx-lp-data/abigen/gauge"
 	"dddx-lp-data/abigen/pair"
 	"dddx-lp-data/abigen/token"
+	"dddx-lp-data/abigen/ve"
 	"dddx-lp-data/initializers"
 	"dddx-lp-data/models"
 	"fmt"
@@ -14,14 +15,14 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
-// Which is the better practice?  Return values only or return values with error?
-// func GetPoolInstance(address string) (*pair.Pair, error) {
-// 	return pair.NewPair(common.HexToAddress(address), initializers.Client)
-// }
+func GetTokenInstance(address string) *token.Token {
+	token, err := token.NewToken(common.HexToAddress(address), initializers.Client)
+	if err != nil {
+		panic(err)
+	}
 
-// func GetTokenInstance(address string) (*token.Token, error) {
-// 	return token.NewToken(common.HexToAddress(address), initializers.Client)
-// }
+	return token
+}
 
 func GetPoolInstance(address string) *pair.Pair {
 	pool, err := pair.NewPair(common.HexToAddress(address), initializers.Client)
@@ -32,15 +33,6 @@ func GetPoolInstance(address string) *pair.Pair {
 	return pool
 }
 
-func GetTokenInstance(address string) *token.Token {
-	token, err := token.NewToken(common.HexToAddress(address), initializers.Client)
-	if err != nil {
-		panic(err)
-	}
-
-	return token
-}
-
 func GetGaugeInstance(address string) *gauge.Gauge {
 	gauge, err := gauge.NewGauge(common.HexToAddress(address), initializers.Client)
 	if err != nil {
@@ -48,6 +40,15 @@ func GetGaugeInstance(address string) *gauge.Gauge {
 	}
 
 	return gauge
+}
+
+func GetVeInstance(address string) *ve.Ve {
+	veNFT, err := ve.NewVe(common.HexToAddress(address), initializers.Client)
+	if err != nil {
+		panic(err)
+	}
+
+	return veNFT
 }
 
 func GetTokenPairInstances(poolInstance *pair.Pair) (*token.Token, *token.Token) {
@@ -234,6 +235,53 @@ func GetFarmTokenPairBalOfUser(userAddress string, gaugeAddress string) (models.
 
 	return token0Bal, token1Bal
 
+}
+
+func GetStakedBalances(userAddress string, veAddress string) []models.UserInformationLocked {
+	var result []models.UserInformationLocked
+
+	veInstance := GetVeInstance(veAddress)
+	// Get user's total veNFT
+	userBal, err := veInstance.BalanceOf(&bind.CallOpts{}, common.HexToAddress(userAddress))
+	if err != nil {
+		panic(err)
+	}
+
+	num := int(userBal.Int64())
+
+	for i := 0; i < num; i++ {
+		set_i := big.NewInt(int64(i))
+		var test models.UserInformationLocked
+		tokenId, err := veInstance.TokenOfOwnerByIndex(&bind.CallOpts{}, common.HexToAddress(userAddress), set_i)
+		if err != nil {
+			panic(err)
+		}
+
+		test, err = veInstance.Locked(&bind.CallOpts{}, tokenId)
+		if err != nil {
+			panic(err)
+		}
+
+		result = append(result, test)
+	}
+
+	return result
+}
+
+func GetTokenSymbolFromVeAddress(veAddress string) string {
+	veInstance := GetVeInstance(veAddress)
+	tokenAddress, err := veInstance.Token(&bind.CallOpts{})
+	if err != nil {
+		panic(err)
+	}
+
+	tokenInstance := GetTokenInstance(tokenAddress.Hex())
+	symbol, err := tokenInstance.Symbol(&bind.CallOpts{})
+	if err != nil {
+		panic(err)
+	}
+
+	return symbol
 }
 
 func GetPoolAddressFromGauge(gaugeAddress string) string {

@@ -1,5 +1,7 @@
 package models
 
+import "math/big"
+
 type LPInfo struct {
 	UserAddress string           `json:"user_address"`
 	LPBalance   TokenPairBalance `json:"lp_balance"`
@@ -12,4 +14,15 @@ type LPFarmResponse struct {
 	Token1      TokenBalance `json:"token1"`
 	ProtocolId  string       `json:"protocol_id"`
 	Pool        PoolSimple   `json:"pool"`
+}
+
+type UserInformationLocked struct {
+	Amount *big.Int
+	End    *big.Int
+}
+
+type StakeResponse struct {
+	UserAddress    string                  `json:"user_address"`
+	TokenSymbol    string                  `json:"token"`
+	Staked_balance []UserInformationLocked `json:"staked_balance"`
 }

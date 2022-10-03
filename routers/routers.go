@@ -46,24 +46,19 @@ func Routers() http.Handler {
 	// r.GET("/api/v1/user/farms/:protocol", controllers.GetAllLPOfProtocol) // Get Farming data (multiple protocols from one chain)
 	r.GET("/api/v1/user/farms", controllers.GetFarmOfProtocol) // Get user's specific Farming pair data from specific chain
 
-	/* End of LP Data APIs*/
+	/* End of Farming Data APIs*/
 	/**********************************************************************/
 
-	// Get user's Farming information
-	// r.GET("/api/v1/user/farm", controllers.GetFarmInfo)
+	/**********************************************************************/
+	/* Staked Data APIs*/
 
-	// Get user's Farming information
-	// r.GET("/api/v1/user/stake", controllers.GetStakeInfo)
+	// r.GET("/api/v1/user/staked/all", controllers.GetAllLp) // Get Farming data (multiple protocols from multiple chains)
+	// r.GET("/api/v1/user/staked/:chain", controllers.GetAllLpOfChain) // Get Farming data (multiple protocols from one chain)
+	// r.GET("/api/v1/user/staked/:protocol", controllers.GetAllLPOfProtocol) // Get Farming data (multiple protocols from one chain)
+	r.GET("/api/v1/user/staked", controllers.GetStakedOfProtocol) // Get user's specific Farming pair data from specific chain
 
-	/*Old APIs*/
-	// Get user's LP information
-	r.GET("/api/lp/:usrAddr", controllers.GetUserInfo)
-
-	// Get user's Farming information
-	r.GET("/api/farm/:usrAddr", controllers.GetUserInfoFarming)
-
-	// Get user's Staked/Locked Tokens information
-	r.GET("/api/lock/:usrAddr", controllers.GetUserInfoLocked)
+	/* End of Staked Data APIs*/
+	/**********************************************************************/
 
 	return r
 }
