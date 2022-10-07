@@ -3,6 +3,13 @@ package models
 import "math/big"
 
 // LP & Farming response
+type AllLPFarmBalResponse struct {
+	Token0      TokenBalance `json:"token0"`
+	Token1      TokenBalance `json:"token1"`
+	Pool        PoolSimple   `json:"pool"`
+}
+
+// LP & Farming response
 type LPFarmResponse struct {
 	UserAddress string       `json:"user_address"`
 	Token0      TokenBalance `json:"token0"`
@@ -18,6 +25,11 @@ type UserInformationLocked struct {
 
 type StakeResponse struct {
 	UserAddress    string                  `json:"user_address"`
+	TokenSymbol    string                  `json:"token"`
+	Staked_balance []UserInformationLocked `json:"staked_balance"`
+}
+
+type AllStakeResponse struct {
 	TokenSymbol    string                  `json:"token"`
 	Staked_balance []UserInformationLocked `json:"staked_balance"`
 }
