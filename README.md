@@ -82,6 +82,9 @@ CompileDaemon -command="./dddx-lp-data"
 | api/v1/user/lps      | GET           | user_address, protocol_id, gauge_address              | Get wallet address's LP balance  |
 | api/v1/user/farms      | GET           | user_address, protocol_id, gauge_address              | Get wallet address's Farming LP balance  |
 | api/v1/user/staked      | GET           | user_address, protocol_id vote_escrowed_address            | Get wallet address's staked balance   |
+| api/v1/user/all_pools      | GET           | user_address, protocol_id           | Get wallet address's all LP balance   |
+| api/v1/user/all_farms      | GET           | user_address, protocol_id           | Get wallet address's all farming balance   |
+| api/v1/user      | GET           | user_address, protocol_id           | Get wallet address's all LP, farming and staked balance   |
 
 ## Resources
 * [DDDX Contracts](https://dddx.gitbook.io/dddx.io/tokenomics/contracts)

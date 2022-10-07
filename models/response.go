@@ -28,3 +28,8 @@ type StakeResponse struct {
 	TokenSymbol    string                  `json:"token"`
 	Staked_balance []UserInformationLocked `json:"staked_balance"`
 }
+
+type AllStakeResponse struct {
+	TokenSymbol    string                  `json:"token"`
+	Staked_balance []UserInformationLocked `json:"staked_balance"`
+}
