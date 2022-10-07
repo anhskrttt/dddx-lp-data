@@ -6,6 +6,7 @@ import (
 	"dddx-lp-data/abigen/pair"
 	"dddx-lp-data/abigen/token"
 	"dddx-lp-data/abigen/ve"
+	"dddx-lp-data/abigen/voter"
 	"dddx-lp-data/initializers"
 	"dddx-lp-data/models"
 	"log"
@@ -66,6 +67,15 @@ func GetVeInstance(address string) *ve.Ve {
 	}
 
 	return veNFT
+}
+
+func GetVoterInstance(address string) *voter.Voter {
+	voter, err := voter.NewVoter(common.HexToAddress(address), initializers.Client)
+	if err != nil {
+		panic(err)
+	}
+
+	return voter
 }
 
 // GetTokenPairInstances generates two new erc20 contract instances from pool Instance.
@@ -267,8 +277,6 @@ func GetTokenSymbolFromVeAddress(veAddress string) string {
 	return symbol
 }
 
-
-
 func GetLpRatio(poolInstance *pair.Pair, userAddress string) *big.Float {
 	// Get wallet's LP token balance
 	bal, err := poolInstance.BalanceOf(&bind.CallOpts{}, common.HexToAddress(userAddress))
@@ -323,6 +331,7 @@ func GetLpRatio(poolInstance *pair.Pair, userAddress string) *big.Float {
 /**********************************************************************/
 /* Quick access to instance's funcs. */
 
+// Gauge
 func GetPoolAddressFromGauge(gaugeAddress string) string {
 	gaugeInstance := GetGaugeInstance(gaugeAddress)
 
@@ -335,6 +344,7 @@ func GetPoolAddressFromGauge(gaugeAddress string) string {
 	return poolAddress.Hex()
 }
 
+// Token
 func GetTokenPairBalOfPool(poolAddress string, token0Instance *token.Token, token1Instance *token.Token) (*big.Int, *big.Int) {
 	// Balance of pool
 	token0BalOfPool, err := token0Instance.BalanceOf(&bind.CallOpts{}, common.HexToAddress(poolAddress))
@@ -364,6 +374,7 @@ func GetTokenPairSymbolOfPool(poolAddress string, token0Instance *token.Token, t
 	return symbol0, symbol1
 }
 
+// Factory
 func GetAllPairsLength(factoryInstance *factory.Factory) int {
 	poolLength, err := factoryInstance.AllPairsLength(&bind.CallOpts{})
 	if err != nil {
@@ -373,6 +384,63 @@ func GetAllPairsLength(factoryInstance *factory.Factory) int {
 	return int(poolLength.Uint64())
 }
 
+func GetAllLiquidityPools(factoryAddress string) (int, []string) {
+	var pools []string
+
+	// Query all pool addresses of dddx
+	factoryInstance := GetFactoryInstance(factoryAddress)
+
+	poolLength := GetAllPairsLength(factoryInstance)
+
+	for i := 0; i < poolLength; i++ {
+		poolAddress, err := factoryInstance.AllPairs(&bind.CallOpts{}, big.NewInt(int64(i)))
+		if err != nil {
+			panic(err)
+		}
+		pools = append(pools, poolAddress.Hex())
+	}
+
+	return poolLength, pools
+}
+
+func GetAllGauges(voterAddress string, factoryAddress string) (int, []string) {
+	var pools []string
+	var gauges []string
+	voter := GetVoterInstance(voterAddress)
+
+	length := GetAllFarmingPoolLength(voter)
+
+	for i := 0; i < length; i++ {
+		poolAddress, err := voter.Pools(&bind.CallOpts{}, big.NewInt(int64(i)))
+		if err != nil {
+			panic(err)
+		}
+		pools = append(pools, poolAddress.Hex())
+	}
+
+	for _, poolAddress := range pools {
+		gauge, err := voter.Gauges(&bind.CallOpts{}, common.HexToAddress(poolAddress))
+		if err != nil {
+			panic(err)
+		}
+		gauges = append(gauges, gauge.Hex())
+	}
+
+	return length, gauges
+}
+
+func GetFarmBalFromGauge(userAddress string, gaugeAddress string) *big.Int {
+	gaugeInstance := GetGaugeInstance(gaugeAddress)
+
+	lpBal, err := gaugeInstance.BalanceOf(&bind.CallOpts{}, common.HexToAddress(userAddress))
+	if err != nil {
+		panic(err)
+	}
+
+	return lpBal
+}
+
+// Pair
 func GetLPBalFromPool(userAddress string, poolAddress string) *big.Int {
 	poolInstance := GetPoolInstance(poolAddress)
 
@@ -382,6 +450,16 @@ func GetLPBalFromPool(userAddress string, poolAddress string) *big.Int {
 	}
 
 	return lpBal
+}
+
+// Voter
+func GetAllFarmingPoolLength(voterInstance *voter.Voter) int {
+	poolLength, err := voterInstance.Length(&bind.CallOpts{})
+	if err != nil {
+		panic(err)
+	}
+
+	return int(poolLength.Uint64())
 }
 
 /* End of quick access to instance's funcs. */

@@ -25,6 +25,7 @@ var TokenSymbolToId map[string]string = map[string]string{
 	"usx":    "token-dforce-usd",
 	"pots":   "moonpot",
 	"salt":   "salt",
+	"duo":    "duo",
 }
 
 func WeiToEth(balance *big.Int) float64 {
