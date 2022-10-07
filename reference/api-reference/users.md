@@ -6,6 +6,89 @@ description: >-
 
 # Users
 
+## Get User's All Balance
+
+{% swagger method="get" path="/api/v1/user" baseUrl="https://localhost:3000" summary="Get all balances of user: LP, Farming, Staked" %}
+{% swagger-description %}
+
+{% endswagger-description %}
+
+{% swagger-parameter in="query" name="user_address" type="string" %}
+
+{% endswagger-parameter %}
+
+{% swagger-parameter in="query" name="protocol_id" type="string" %}
+Default is "dddx"
+{% endswagger-parameter %}
+
+{% swagger-response status="200: OK" description="Sucessful" %}
+```json
+{
+    "farm_balance": [
+        {
+            "token0": {
+                "token_symbol": "DDDX",
+                "balance": 35844396179960894696232,
+                "balance_in_usd": 88.79768110057893
+            },
+            "token1": {
+                "token_symbol": "WBNB",
+                "balance": 325220357759858831,
+                "balance_in_usd": 91.9040208993585
+            },
+            "pool": {
+                "pool_address": "0x0e04b12B7BbDdEd49e2C0d8D68f323e049AaD08D",
+                "chain_name": "BNB Smart Chain",
+                "lp_token": {
+                    "name": "VolatileV1 AMM - DDDX/WBNB",
+                    "symbol": "vAMM-DDDX/WBNB",
+                    "decimals": 18
+                }
+            }
+        },
+        {
+            "token0": {
+                "token_symbol": "DOU",
+                "balance": 73113166155047667123124,
+                "balance_in_usd": 0
+            },
+            "token1": {
+                "token_symbol": "BUSD",
+                "balance": 11029072204855045965,
+                "balance_in_usd": 0
+            },
+            "pool": {
+                "pool_address": "0xf77a7865B6198d18a75166363926424BE186ba33",
+                "chain_name": "BNB Smart Chain",
+                "lp_token": {
+                    "name": "VolatileV1 AMM - DOU/BUSD",
+                    "symbol": "vAMM-DOU/BUSD",
+                    "decimals": 18
+                }
+            }
+        }
+    ],
+    "lp_balance": null,
+    "protocol_id": "dddx",
+    "staked_balance": {
+        "token": "DDDX",
+        "staked_balance": [
+            {
+                "Amount": 580293524395114994705,
+                "End": 1684368000
+            },
+            {
+                "Amount": 31852303369588166123234,
+                "End": 1723075200
+            }
+        ]
+    },
+    "user_address": "0x94fac6b9634f00801b122e2c3dfe1c29b44cda25"
+}
+```
+{% endswagger-response %}
+{% endswagger %}
+
 ## Get User's All LP balance
 
 {% swagger method="get" path="/api/v1/user/all_pools" baseUrl="https://localhost:3000" summary="Get user's lp balance" %}
@@ -53,8 +136,6 @@ Default is "dddx"
 ```
 {% endswagger-response %}
 {% endswagger %}
-
-##
 
 ## Get User's All Farming balance
 
