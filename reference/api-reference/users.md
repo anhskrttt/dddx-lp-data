@@ -8,9 +8,9 @@ description: >-
 
 ## Get User's All LP balance
 
-{% swagger method="get" path="/api/v1/user/all_pools" baseUrl="https://localhost:3000" summary="Get user's lp balances" %}
+{% swagger method="get" path="/api/v1/user/all_pools" baseUrl="https://localhost:3000" summary="Get user's lp balance" %}
 {% swagger-description %}
-Return all LP balances of user.
+Return all LP balance of user.
 {% endswagger-description %}
 
 {% swagger-parameter in="query" name="user_address" type="string" %}
@@ -49,6 +49,77 @@ Default is "dddx"
         }
     ],
     "user_address": "0x043220ac21c0ce367689d93822ad70fe95ea8d2e"
+}
+```
+{% endswagger-response %}
+{% endswagger %}
+
+##
+
+## Get User's All Farming balance
+
+{% swagger method="get" path="/api/v1/user/all_farms" baseUrl="https://localhost:3000" summary="Get user's farming balance" %}
+{% swagger-description %}
+Return all farming balance of user
+{% endswagger-description %}
+
+{% swagger-parameter in="query" name="user_address" type="string" %}
+
+{% endswagger-parameter %}
+
+{% swagger-parameter in="query" name="protocol_id" type="string" %}
+Default is "dddx"
+{% endswagger-parameter %}
+
+{% swagger-response status="200: OK" description="Sucessful" %}
+```json
+{
+    "protocol_id": "dddx",
+    "response": [
+        {
+            "token0": {
+                "token_symbol": "DDDX",
+                "balance": 35844396179960894696232,
+                "balance_in_usd": 91.59748688619567
+            },
+            "token1": {
+                "token_symbol": "WBNB",
+                "balance": 325220357759858831,
+                "balance_in_usd": 91.68287105608182
+            },
+            "pool": {
+                "pool_address": "0x0e04b12B7BbDdEd49e2C0d8D68f323e049AaD08D",
+                "chain_name": "BNB Smart Chain",
+                "lp_token": {
+                    "name": "VolatileV1 AMM - DDDX/WBNB",
+                    "symbol": "vAMM-DDDX/WBNB",
+                    "decimals": 18
+                }
+            }
+        },
+        {
+            "token0": {
+                "token_symbol": "DOU",
+                "balance": 53803206385688892972486,
+                "balance_in_usd": 0
+            },
+            "token1": {
+                "token_symbol": "BUSD",
+                "balance": 14987403963791853856,
+                "balance_in_usd": 0
+            },
+            "pool": {
+                "pool_address": "0xf77a7865B6198d18a75166363926424BE186ba33",
+                "chain_name": "BNB Smart Chain",
+                "lp_token": {
+                    "name": "VolatileV1 AMM - DOU/BUSD",
+                    "symbol": "vAMM-DOU/BUSD",
+                    "decimals": 18
+                }
+            }
+        }
+    ],
+    "user_address": "0x94fac6b9634f00801b122e2c3dfe1c29b44cda25"
 }
 ```
 {% endswagger-response %}
