@@ -8,6 +8,6 @@ type LPRequest struct {
 
 type GetStakedOfProtocolRequest struct {
 	UserAddress string `form:"user_address"`
-	VeAddress   string `form:"vote_escrowed_address"`
 	ProtocolId  string `form:"protocol_id"` // Default: DDDX: "dddx"
+	VeAddress   string `form:"vote_escrowed_address"`
 }

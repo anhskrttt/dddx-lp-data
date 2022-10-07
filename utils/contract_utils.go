@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"dddx-lp-data/abigen/factory"
 	"dddx-lp-data/abigen/gauge"
 	"dddx-lp-data/abigen/pair"
 	"dddx-lp-data/abigen/token"
@@ -25,6 +26,16 @@ func GetTokenInstance(address string) *token.Token {
 	}
 
 	return token
+}
+
+// GetTokenInstance generates a new erc20 contract instance.
+func GetFactoryInstance(address string) *factory.Factory {
+	factory, err := factory.NewFactory(common.HexToAddress(address), initializers.Client)
+	if err != nil {
+		panic(err)
+	}
+
+	return factory
 }
 
 // GetPoolInstance generates a new pool contract instance.
@@ -148,6 +159,65 @@ func GetTokenPairBalOfUser(userAddress string, gaugeAddress string, isFarming bo
 
 }
 
+func GetTokenPairBalOfUserFromPoolAddress(userAddress string, poolAddress string) (models.TokenBalance, models.TokenBalance) {
+	poolInstance := GetPoolInstance(poolAddress)
+
+	token0Instance, token1Instance := GetTokenPairInstances(poolInstance)
+
+	// Get pool's balance of token0, token1
+	token0BalOfPool, token1BalOfPool := GetTokenPairBalOfPool(poolAddress, token0Instance, token1Instance)
+
+	bal, err := poolInstance.BalanceOf(&bind.CallOpts{}, common.HexToAddress(userAddress))
+	if err != nil {
+		panic(err)
+	}
+
+	totalSupply, err := poolInstance.TotalSupply(&bind.CallOpts{})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Get the wallet's LP ratio
+	lpRatio := DivBigIntToBigFloat(bal, totalSupply)
+
+	token0BalOfUser := GetBalOfRatio(lpRatio, token0BalOfPool) // = ratio * total amount
+	token1BalOfUser := GetBalOfRatio(lpRatio, token1BalOfPool) // = ratio * total amount
+
+	// token0BalOfUser1 := GetBal(userBal, token0BalOfPool)
+
+	// Balance in USD
+	/**********************************************************************/
+	/* Query data from coingecko */
+
+	// Get symbols
+	symbol0, symbol1 := GetTokenPairSymbolOfPool(poolAddress, token0Instance, token1Instance)
+
+	// WBNB to USD
+	price0, price1 := GetUsdPriceInPair(symbol0, symbol1)
+	Token0BalInUsd := WeiToEth(token0BalOfUser) * price0
+
+	// BUSD to USD
+	Token1BalInUsd := WeiToEth(token1BalOfUser) * price1
+
+	/* End of querying data from coingecko*/
+	/**********************************************************************/
+
+	token0Bal := models.TokenBalance{
+		TokenSymbol:  symbol0,
+		Balance:      token0BalOfUser,
+		BalanceInUSD: Token0BalInUsd,
+	}
+
+	token1Bal := models.TokenBalance{
+		TokenSymbol:  symbol1,
+		Balance:      token1BalOfUser,
+		BalanceInUSD: Token1BalInUsd,
+	}
+
+	return token0Bal, token1Bal
+
+}
+
 // GetStakedBalances return an array of staked token information.
 // Staked token information includes: Balance (in wei) and time to unlock fund.
 func GetStakedBalances(userAddress string, veAddress string) []models.UserInformationLocked {
@@ -197,17 +267,7 @@ func GetTokenSymbolFromVeAddress(veAddress string) string {
 	return symbol
 }
 
-func GetPoolFromGauge(gaugeAddress string) models.PoolSimple {
-	gaugeInstance := GetGaugeInstance(gaugeAddress)
 
-	// Get pair contract address from gauge contract
-	poolAddress, err := gaugeInstance.Stake(&bind.CallOpts{})
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return GetPoolFromAddress(poolAddress.Hex())
-}
 
 func GetLpRatio(poolInstance *pair.Pair, userAddress string) *big.Float {
 	// Get wallet's LP token balance
@@ -304,13 +364,33 @@ func GetTokenPairSymbolOfPool(poolAddress string, token0Instance *token.Token, t
 	return symbol0, symbol1
 }
 
+func GetAllPairsLength(factoryInstance *factory.Factory) int {
+	poolLength, err := factoryInstance.AllPairsLength(&bind.CallOpts{})
+	if err != nil {
+		panic(err)
+	}
+
+	return int(poolLength.Uint64())
+}
+
+func GetLPBalFromPool(userAddress string, poolAddress string) *big.Int {
+	poolInstance := GetPoolInstance(poolAddress)
+
+	lpBal, err := poolInstance.BalanceOf(&bind.CallOpts{}, common.HexToAddress(userAddress))
+	if err != nil {
+		panic(err)
+	}
+
+	return lpBal
+}
+
 /* End of quick access to instance's funcs. */
 /**********************************************************************/
 
 /**********************************************************************/
 /* Generate instances of models. For testing purpose only. */
 
-// GetPoolFromAddress generates a new pool model based on pool contract address.
+// GetPoolFromAddress generates a new poolSimple model based on pool contract address.
 // Default data is: DDDX protocol, BSC chain.
 func GetPoolFromAddress(poolAddress string) (ps models.PoolSimple) {
 	var err error
@@ -338,6 +418,20 @@ func GetPoolFromAddress(poolAddress string) (ps models.PoolSimple) {
 	ps.PoolAddress = poolAddress
 
 	return
+}
+
+// GetPoolFromGauge generates a new poolSimple model based on gauge contract address.
+// Default data is: DDDX protocol, BSC chain.
+func GetPoolFromGauge(gaugeAddress string) models.PoolSimple {
+	gaugeInstance := GetGaugeInstance(gaugeAddress)
+
+	// Get pair contract address from gauge contract
+	poolAddress, err := gaugeInstance.Stake(&bind.CallOpts{})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return GetPoolFromAddress(poolAddress.Hex())
 }
 
 /* End of generating instances of models */

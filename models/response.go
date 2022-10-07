@@ -3,6 +3,13 @@ package models
 import "math/big"
 
 // LP & Farming response
+type AllLPBalResponse struct {
+	Token0      TokenBalance `json:"token0"`
+	Token1      TokenBalance `json:"token1"`
+	Pool        PoolSimple   `json:"pool"`
+}
+
+// LP & Farming response
 type LPFarmResponse struct {
 	UserAddress string       `json:"user_address"`
 	Token0      TokenBalance `json:"token0"`

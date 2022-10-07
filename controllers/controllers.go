@@ -3,8 +3,11 @@ package controllers
 import (
 	"dddx-lp-data/models"
 	"dddx-lp-data/utils"
+	"fmt"
+	"math/big"
 	"net/http"
 
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/gin-gonic/gin"
 )
 
@@ -12,6 +15,99 @@ import (
 func Ping(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"response": "pong",
+	})
+}
+
+func GetAllLiquidityPoolsOfProtocol(c *gin.Context) {
+	var pools []string
+
+	// Get data off url query: user_address
+	protocolId := c.Query("protocol_id")
+
+	if protocolId != "dddx" {
+		c.JSON(http.StatusOK, gin.H{
+			"response": "unsupported protocol",
+		})
+		return
+	}
+
+	// Query all pool addresses of dddx
+	factoryInstance := utils.GetFactoryInstance("0xb5737A06c330c22056C77a4205D16fFD1436c81b")
+
+	poolLength := utils.GetAllPairsLength(factoryInstance)
+
+	for i := 0; i < poolLength; i++ {
+		poolAddress, err := factoryInstance.AllPairs(&bind.CallOpts{}, big.NewInt(int64(i)))
+		if err != nil {
+			panic(err)
+		}
+		pools = append(pools, poolAddress.Hex())
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"protocol_id": protocolId,
+		"length":      poolLength,
+		"pools":       pools,
+	})
+}
+
+// GetAllLpOfProtocol returns all pools user's currently providing liquidity.
+// Default pool is DDDX.
+func GetAllLpBalOfProtocol(c *gin.Context) {
+	var pools []string
+	// Get data off url query: user_address
+	userAddress := c.Query("user_address")
+	protocolId := c.Query("protocol_id")
+
+	if protocolId != "dddx" {
+		c.JSON(http.StatusOK, gin.H{
+			"response": "unsupported protocol",
+		})
+		return
+	}
+
+	// Query all pool addresses of dddx
+	factoryInstance := utils.GetFactoryInstance("0xb5737A06c330c22056C77a4205D16fFD1436c81b")
+
+	poolLength := utils.GetAllPairsLength(factoryInstance)
+	_ = poolLength
+
+	for i := 0; i < poolLength; i++ {
+		poolAddress, err := factoryInstance.AllPairs(&bind.CallOpts{}, big.NewInt(int64(i)))
+		if err != nil {
+			panic(err)
+		}
+		pools = append(pools, poolAddress.Hex())
+	}
+
+	// Check if balance = 0
+
+	var responses []models.AllLPBalResponse
+
+	for _, poolAddress := range pools {
+		bal := utils.GetLPBalFromPool(userAddress, poolAddress)
+		fmt.Println(bal)
+
+		// If bal != 0, add to []responses
+		if len(bal.Bits()) != 0 {
+			// Read data from pool address and calculate LP balance
+			token0BalOfUser, token1BalOfUser := utils.GetTokenPairBalOfUserFromPoolAddress(userAddress, poolAddress)
+
+			// Create response & Attach data to response struct
+			response := models.AllLPBalResponse{
+				Token0: token0BalOfUser,
+				Token1: token1BalOfUser,
+				Pool:   utils.GetPoolFromAddress(poolAddress), // Generate a simple pool model for general pool info
+			}
+
+			responses = append(responses, response)
+		}
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"user_address": userAddress,
+		"protocol_id":  protocolId,
+		"response":     responses,
 	})
 }
 
