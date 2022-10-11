@@ -2,6 +2,21 @@ package models
 
 import "math/big"
 
+type AllPoolsOfProtocolResponse struct {
+	ProtocolId string `json:"protocol_id"`
+	Length int `json:"length"`
+	Pools []string `json:"pools"`
+
+}
+
+type AllBalOfUserResponse struct {
+	UserAddress string `json:"user_address"`
+	ProtocolId string  `json:"protocol_id"`
+	LPBalance []AllLPFarmBalResponse `json:"lp_balance"`
+	FarmBalance []AllLPFarmBalResponse `json:"farm_balance"`
+	StakedBalance AllStakeResponse `json:"stakedBalance"`
+}
+
 // LP & Farming response
 type AllLPFarmBalResponse struct {
 	Token0      TokenBalance `json:"token0"`

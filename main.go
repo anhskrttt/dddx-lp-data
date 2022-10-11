@@ -3,6 +3,7 @@ package main
 import (
 	"dddx-lp-data/initializers"
 	"dddx-lp-data/routers"
+	"dddx-lp-data/utils"
 	"log"
 	"net/http"
 	"os"
@@ -14,6 +15,7 @@ import (
 func init() {
 	initializers.LoadEnv()
 	initializers.ConnectToEthClient()
+	utils.InitializeContractInstance()
 }
 
 func main() {
