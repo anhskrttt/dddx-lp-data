@@ -1,42 +1,21 @@
 # DDDX Liquidity Provider Data
 ## Document Reference
-URL: [DDDX-LP-DATA](https://anhs-organization.gitbook.io/dddx-data/)
+[DDDX-LP-DATA](https://anhs-organization.gitbook.io/dddx-data/)
 ## Structure
 ```
+$ tree
 .
 ├── abigen                              // All go files gen by abigen
-│   ├── gauge
-│   │   └── gauge.go
-│   ├── pair
-│   │   └── pair.go
-│   ├── token
-│   │   └── token.go
-│   └── ve
-│       └── ve.go
+│   ├── factory
+│   │   └── factory.go
+│   ├── ...
 ├── build                               // abi files gen by solc
 │   ├── Base64.abi
 │   ├── BaseV1Factory.abi
-│   ├── BaseV1Fees.abi
-│   ├── BaseV1GaugeFactory.abi
-│   ├── BaseV1Pair.abi
-│   ├── erc20.abi
-│   ├── Gauge.abi
-│   ├── IBaseV1Callee.abi
-│   ├── IBaseV1Core.abi
-│   ├── IBaseV1Factory.abi
-│   ├── IBribe.abi
-│   ├── IERC165.abi
-│   ├── IERC20.abi
-│   ├── IERC721.abi
-│   ├── IERC721Metadata.abi
-│   ├── IERC721Receiver.abi
-│   ├── Math.abi
-│   └── ve.abi
+│   ├── ...
 ├── contracts                           // All contracts used
 │   ├── BaseV1Factory.sol
-│   ├── BaseV1GaugeFactory.sol
-│   ├── BaseV1Router01.sol
-│   └── ve.sol
+│   ├── ...
 ├── controllers                         // Handler functions
 │   └── controllers.go
 ├── dddx-lp-data                        // CompileDaemon running file
@@ -51,14 +30,22 @@ URL: [DDDX-LP-DATA](https://anhs-organization.gitbook.io/dddx-data/)
 │   ├── request.go
 │   └── response.go
 ├── README.md
-├── routers
-│   └── routers.go                      // Routers used
+├── routers                             // Routers used
+│   └── routers.go
 └── utils                               // Util functions
+    ├── contract_instance.go
     ├── contract_utils.go
+    ├── dddx_details.go
+    ├── dddx_erc20_utils.go
+    ├── dddx_factory_utils.go
+    ├── dddx_gauge_utils.go
+    ├── dddx_pair_utils.go
+    ├── dddx_voter_utils.go
+    ├── local_storage.go
     ├── math.go
-    └── utils.go
+    └── token.go
 
-12 directories, 41 files
+15 directories, 58 files
 ```
 ## Setups
 - Clone project
