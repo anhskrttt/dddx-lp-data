@@ -8,7 +8,7 @@ type User struct {
 }
 
 type Token struct {
-	ID       string `json:"id,,omitempty"`
+	ID       string `json:"id,omitempty"`
 	Name     string `json:"name,omitempty"`
 	Symbol   string `json:"symbol,omitempty"`
 	Decimals uint8  `json:"decimals,omitempty"`
