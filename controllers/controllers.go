@@ -209,10 +209,6 @@ func GetAllFarmBalOfProtocol(c *gin.Context) {
 	// Get data off url query: protocol_id
 	switch protocolId := c.Query("protocol_id"); protocolId {
 	case "dddx":
-		// Get all gauges address
-		// Refactor: Save gauges to local storage
-		// _, gauges := utils.GetAllGauges("0xAd8Ab2C2270Ab0603CFC674d28fd545495369f31")
-
 		// check bal of each gauge
 		for _, gaugeAddress := range utils.Gauges {
 			bal := utils.GetFarmBalFromGaugeAddress(userAddress, gaugeAddress)

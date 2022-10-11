@@ -3,11 +3,9 @@ package utils
 import (
 	"dddx-lp-data/abigen/pair"
 	"dddx-lp-data/abigen/ve"
-	"dddx-lp-data/abigen/voter"
 	"dddx-lp-data/models"
 	"log"
 	"math/big"
-	"strings"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -64,65 +62,6 @@ func GetTokenPairBalOfUser(userAddress string, gaugeAddress string, isFarming bo
 
 	// Get symbols
 	symbol0, symbol1 := GetTokenPairSymbolOfPool(poolAddress.Hex(), token0Instance, token1Instance)
-
-	// WBNB to USD
-	price0, price1 := GetUsdPriceInPair(symbol0, symbol1)
-	Token0BalInUsd := WeiToEth(token0BalOfUser) * price0
-
-	// BUSD to USD
-	Token1BalInUsd := WeiToEth(token1BalOfUser) * price1
-
-	/* End of querying data from coingecko*/
-	/**********************************************************************/
-
-	token0Bal := models.TokenBalance{
-		TokenSymbol:  symbol0,
-		Balance:      token0BalOfUser,
-		BalanceInUSD: Token0BalInUsd,
-	}
-
-	token1Bal := models.TokenBalance{
-		TokenSymbol:  symbol1,
-		Balance:      token1BalOfUser,
-		BalanceInUSD: Token1BalInUsd,
-	}
-
-	return token0Bal, token1Bal
-
-}
-
-func GetTokenPairBalOfUserFromPoolAddress(userAddress string, poolAddress string) (models.TokenBalance, models.TokenBalance) {
-	poolInstance := GetPoolInstance(poolAddress)
-
-	token0Instance, token1Instance := GetTokenPairInstances(poolInstance)
-
-	// Get pool's balance of token0, token1
-	token0BalOfPool, token1BalOfPool := GetTokenPairBalOfPool(poolAddress, token0Instance, token1Instance)
-
-	bal, err := poolInstance.BalanceOf(&bind.CallOpts{}, common.HexToAddress(userAddress))
-	if err != nil {
-		panic(err)
-	}
-
-	totalSupply, err := poolInstance.TotalSupply(&bind.CallOpts{})
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// Get the wallet's LP ratio
-	lpRatio := DivBigIntToBigFloat(bal, totalSupply)
-
-	token0BalOfUser := GetFractionOfNum(lpRatio, token0BalOfPool) // = ratio * total amount
-	token1BalOfUser := GetFractionOfNum(lpRatio, token1BalOfPool) // = ratio * total amount
-
-	// token0BalOfUser1 := GetBal(userBal, token0BalOfPool)
-
-	// Balance in USD
-	/**********************************************************************/
-	/* Query data from coingecko */
-
-	// Get symbols
-	symbol0, symbol1 := GetTokenPairSymbolOfPool(poolAddress, token0Instance, token1Instance)
 
 	// WBNB to USD
 	price0, price1 := GetUsdPriceInPair(symbol0, symbol1)
@@ -297,23 +236,6 @@ func GetTokenSymbolFromVeInstance(veInstance *ve.Ve) string {
 	return symbol
 }
 
-func GetLpRatio(poolInstance *pair.Pair, userAddress string) *big.Float {
-	// Get wallet's LP token balance
-	bal, err := poolInstance.BalanceOf(&bind.CallOpts{}, common.HexToAddress(userAddress))
-	if err != nil {
-		panic(err)
-	}
-
-	// Get total supply of LP tokens
-	totalSupply, err := poolInstance.TotalSupply(&bind.CallOpts{})
-	if err != nil {
-		panic(err)
-	}
-
-	// This equals to: "return *big.Float(bal/totalSupply)"
-	return DivBigIntToBigFloat(bal, totalSupply)
-}
-
 /**********************************************************************/
 /* Generate instances of models. For testing purpose only. */
 
@@ -390,26 +312,3 @@ func GetPoolFromGaugeAddress(gaugeAddress string) models.PoolSimple {
 
 /* End of generating instances of models */
 /**********************************************************************/
-
-func GetFarmingBalFromPoolInstance(userAddress string, poolAddress string, voterInstance *voter.Voter) *big.Int {
-	// Get gauge from pool address
-	gaugeAddress, err := voterInstance.Gauges(&bind.CallOpts{}, common.HexToAddress(poolAddress))
-	if err != nil {
-		panic(err)
-	}
-
-	// None gauge
-	if strings.Compare(gaugeAddress.Hex(), "0x0000000000000000000000000000000000000000") == 0 {
-		return big.NewInt(0)
-	}
-
-	// Create gauge instance
-	gaugeInstance := GetGaugeInstance(gaugeAddress.Hex())
-	bal, err := gaugeInstance.BalanceOf(&bind.CallOpts{}, common.HexToAddress(userAddress))
-	if err != nil {
-		panic(err)
-	}
-
-	return bal
-
-}
